@@ -64,3 +64,56 @@ public class Hotel {
                 atribuirQuartos(grupo);
             }
         }
+
+    // Inicializar recepcionistas
+        for (int i = 0; i < NUM_RECEPCIONISTAS; i++) {
+            recepcionistas.add(new Thread(new Recepcionista(i + 1, this)));
+        }
+        
+        //Inicializar camareiras
+        for (int i = 0; i < NUM_CAMAREIRAS; i++) {
+        	camareiras.add(new Thread(new Camareira(i + 1, this)));
+        }
+    }
+
+    public void iniciar() {
+        // Iniciar threads
+        for (Thread hospede : hospedes) {
+            hospede.start();
+        }
+        for (Thread camareira : camareiras) {
+            camareira.start();
+        }
+        for (Thread recepcionista : recepcionistas) {
+            recepcionista.start();
+        }
+
+        // Aguardar todas as threads terminarem
+        for (Thread hospede : hospedes) {
+            try {
+                hospede.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        
+        for (Thread camareira : camareiras) {
+            try {
+                camareira.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        
+        for (Thread recepcionista : recepcionistas) {
+            try {recepcionista.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+ 
+        while (!filaEsperaCheckout.isEmpty()) {
+            fazerCheckoutAutomatico();
+            esperar(1000);
+        }
+    }
