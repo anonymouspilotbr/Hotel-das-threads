@@ -117,3 +117,71 @@ public class Hotel {
             esperar(1000);
         }
     }
+
+  public Quarto getQuartoDisponivel() {
+        for (Quarto quarto : quartos) {
+            if (quarto.isDisponivel()) {
+                return quarto;
+            }
+        }
+        return null;
+    }
+
+    public void esperar(long tempo) {
+        try {
+            Thread.sleep(tempo);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public int getNumHospedes() {
+        return NUM_HOSPEDES;
+    }
+
+    public Semaphore getSemaforoRecepcao() {
+        return semaforoRecepcao;
+    }
+
+    public Semaphore getSemaforoLimpeza() {
+        return semaforoLimpeza;
+    }
+
+    public List<Quarto> getQuartos() {
+        return quartos;
+    }
+
+    public synchronized void adicionarFilaEspera(Hospede hospede) {
+        filaEspera.add(hospede);
+    }
+
+    public synchronized boolean removerFilaEspera(Hospede hospede) {
+        return filaEspera.remove(hospede);
+    }
+
+    public synchronized Hospede proximoFilaEspera() {
+        if (!filaEspera.isEmpty()) {
+            return filaEspera.remove(0);
+        }
+        return null;
+    }
+    
+    private void atribuirQuartos(Grupo grupo) {
+        int numQuartosNecessarios = (int) Math.ceil((double) grupo.getNumeroPessoas() / CAPACIDADE_QUARTO);
+        for (int i = 0; i < numQuartosNecessarios; i++) {
+            if (!quartos.isEmpty()) {
+                Quarto quarto = quartos.remove(0);
+                grupo.adicionarQuarto(quarto);
+                System.out.println("Quarto " + quarto.getNumero() + " atribuído ao Grupo " + grupo.getNumero());
+            } else {
+                System.out.println("Não há quartos disponíveis para o Grupo " + grupo.getNumero());
+            }
+        }
+
+        for (Hospede hospede : grupo.getHospedes()) {
+            Quarto quartoAtribuido = hospede.getQuartoAtribuido();
+            if (quartoAtribuido != null) {
+                checkoutAutomatico(hospede, TEMPO_PERMANENCIA);
+            }
+        }
+    }
