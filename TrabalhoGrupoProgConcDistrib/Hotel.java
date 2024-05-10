@@ -185,3 +185,65 @@ public class Hotel {
             }
         }
     }
+
+    public void checkoutAutomatico(Hospede hospede, long tempoDePermanencia) {
+        Runnable checkoutTask = () -> {
+            esperar(tempoDePermanencia);
+            Quarto quarto = hospede.getQuartoAtribuido();
+            if (quarto != null) {
+                removerHospede(quarto, hospede);
+            }
+        };
+        new Thread(checkoutTask).start();
+    }
+    
+    public void fazerCheckoutAutomatico() {
+        Hospede hospede = proximoFilaEsperaCheckout();
+        if (hospede != null) {
+            removerHospede(hospede.getQuartoAtribuido(), hospede);
+        }
+    }
+
+    public synchronized void removerHospede(Quarto quarto, Hospede hospede) {
+        quarto.removerHospede(hospede);
+        hospede.fazerCheckout();
+    }
+    
+    private List<Hospede> filaEsperaCheckout = new ArrayList<>();
+
+    public synchronized void adicionarFilaEsperaCheckout(Hospede hospede) {
+        filaEsperaCheckout.add(hospede);
+    }
+
+    public synchronized void removerFilaEsperaCheckout(Hospede hospede) {
+        filaEsperaCheckout.remove(hospede);
+    }
+
+    public synchronized Hospede proximoFilaEsperaCheckout() {
+        if (!filaEsperaCheckout.isEmpty()) {
+            return filaEsperaCheckout.remove(0);
+        }
+        return null;
+    }
+    
+    public void adicionarGrupoEspera(Grupo grupo) {
+        this.gruposEspera.add(grupo);
+    }
+
+    public Grupo proximoGrupoEspera() {
+        if (this.gruposEspera.isEmpty()) {
+            return null;
+        }
+        return this.gruposEspera.remove(0);
+    }
+    
+    public void sairDoHotel(Hospede hospede) {
+        esperar(hospede.getTempoMaximoDePermanencia());
+        hospede.getQuartoAtribuido().removerHospede(hospede);
+        hospede.getQuartoAtribuido().checkout();
+        hospede.getQuartoAtribuido().setDisponivel(true);
+        hospede.getQuartoAtribuido().setLimpezaNecessaria(true);
+        hospedes.remove(hospede);
+    }
+}
+
